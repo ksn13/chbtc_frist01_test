@@ -275,7 +275,7 @@ if __name__ == '__main__':
     
     cf = ConfigParser.ConfigParser()
 
-    cf.read("info.conf")
+    cf.read("Info.conf")
 
     cancalTime_BuyOrder = cf.get("globe", "cancalTime_BuyOrder")
     cancalTime_SellOrder = cf.get("globe", "cancalTime_SellOrder")
