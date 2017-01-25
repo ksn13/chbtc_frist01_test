@@ -3,7 +3,7 @@ import logging
 import logging.handlers
 import ConfigParser
 
-import msvcrt
+#import msvcrt
 
 import smtplib
 from email.mime.text import MIMEText
@@ -331,13 +331,14 @@ if __name__ == '__main__':
 #    done = False
 #while not done:
 while 1:
-
+    '''
     if msvcrt.kbhit():
         print "you pressed",msvcrt.getch(),"so now i will quit"
         cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
         cf.write(open("info.conf", "w"))
         break 
         #done = True
+    '''
     
     txtJson = chbtc.query_account()
 
