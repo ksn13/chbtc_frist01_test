@@ -277,8 +277,8 @@ if __name__ == '__main__':
 
     cf.read("info.conf")
 
-    cancalTime_BuyOrder = cf.getint("globe", "cancalTime_BuyOrder")
-    cancalTime_SellOrder = cf.getint("globe", "cancalTime_SellOrder")
+    cancalTime_BuyOrder = cf.get("globe", "cancalTime_BuyOrder")
+    cancalTime_SellOrder = cf.get("globe", "cancalTime_SellOrder")
     winPer = cf.get("globe", "winPer")
     lossPer = cf.get("globe", "lossPer")
     everydaytask = cf.get("globe", "everydaytask")
