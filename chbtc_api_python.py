@@ -295,7 +295,7 @@ if __name__ == '__main__':
         startworkvalue = initial_value
         cf.set("xiongding@gmail.com", "startworkvalue", (startworkvalue))
 
-    cf.set("xiongding@gmail.com", "startworktime", (time.time()*1000))
+    cf.set("xiongding@gmail.com", "startworktime", (int)(time.time()*1000))
     cf.write(open("info.conf", "w"))
 
     
@@ -362,20 +362,20 @@ while 1:
         break
     elif float(totalAssets) > float(startworkvalue) + float(everydaytask) and buy_order_id == 0 and sell_order_id == 0 and curMoney_BTC == 0:
         cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
-        cf.set("xiongding@gmail.com", "stopworktime", (time.time()*1000))
-        stopworktime = (time.time()*1000)
-        logger.info('I done my daily work : ', str(startworkvalue), ':', str(totalAssets), ":", str(startworktime), ":", str(time.time()*1000))
+        cf.set("xiongding@gmail.com", "stopworktime", (int)(time.time()*1000))
+        stopworktime = (int)(time.time()*1000)
+        logger.info('I done my daily work : ', str(startworkvalue), ':', str(totalAssets), ":", str(startworktime), ":", str( (int)(time.time()*1000) ))
         startworkvalue = stopworkvalue
         cf.write(open("info.conf", "w"))
         while 1:
             time.sleep(600)
-            if time.time()*1000 > (stopworktime + (3600 * 1000 * 24)):
-                startworktime = time.time()*1000
+            if (int)(time.time()*1000) > (stopworktime + (3600 * 1000 * 24)):
+                startworktime = (int)(time.time()*1000)
                 cf.set("xiongding@gmail.com", "startworktime", startworktime)
                 cf.write(open("info.conf", "w"))
                 break
             
-    elif time.time()*1000 - float(startworktime) > (3600 * 1000 * 24) :
+    elif (int)(time.time()*1000) - (int)(startworktime) > (3600 * 1000 * 24) :
         logger.info('I do not my daily work : ', str(startworkvalue), ':', str(totalAssets), ":", str(startworktime))
         startworkvalue = totalAssets
         
@@ -400,6 +400,10 @@ while 1:
 
     AsksPriceLower = 0.0
     timer_cancel_SellOrder = 0.0
+    
+    AsksPriceLower = 0.0
+    BidsPriceHigh = 0.0
+    BidsPriceLower = 0.0
 
     for i in range(0,len(txtJson["asks"])):
 
@@ -424,8 +428,9 @@ while 1:
 
         AsksPriceLower = float(txtJson["asks"][4][0])
         BidsPriceHigh = float(txtJson["bids"][0][0])
+        BidsPriceLower = float(txtJson["bids"][4][0])
 
-    if powerBidsNumber - 4 > powerAsksNumber and curMoney_BTC == 0:
+    if powerBidsNumber - 4 > powerAsksNumber and curMoney_BTC == 0 and powerBidsPrice - BidsPriceLower < 6:
     #if powerBidsNumber > powerAsksNumber and curMoney_BTC == 0:
         if (curMoney_CNY / powerBidsPrice) >= 0.001  :
             txtJson = chbtc.buy_order(str(powerBidsPrice), str(((curMoney_CNY / powerBidsPrice))) )
