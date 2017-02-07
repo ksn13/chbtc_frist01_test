@@ -364,7 +364,7 @@ while 1:
         cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
         cf.set("xiongding@gmail.com", "stopworktime", (int)(time.time()*1000))
         stopworktime = (int)(time.time()*1000)
-        logger.info('I done my daily work : ', str(startworkvalue), ':', str(totalAssets), ":", str(startworktime), ":", str( (int)(time.time()*1000) ))
+        logger.info('I done my daily work : ', str(startworkvalue), ':', str(totalAssets), ":", str(startworktime), ":", str(stopworktime))
         startworkvalue = stopworkvalue
         cf.write(open("info.conf", "w"))
         while 1:
