@@ -297,7 +297,6 @@ if __name__ == '__main__':
 
     cf.set("xiongding@gmail.com", "startworktime", (int)(time.time()*1000))
     cf.write(open("info.conf", "w"))
-
     
     max_value = 0.0
     
@@ -453,6 +452,8 @@ while 1:
             sell_price = powerAsksPrice - timer_cancel_SellOrder
             if sell_price - AsksPriceLower > 4:
                 sell_price = AsksPriceLower
+            if timer_cancel_SellOrder > 0.3 and sell_price > AsksPriceLower :
+                sell_price = AsksPriceLower - 0.01
             txtJson = chbtc.sell_order(str(sell_price), str(("%.3f" % (curMoney_BTC))))
         
         if txtJson != "error" :
