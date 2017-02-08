@@ -449,10 +449,10 @@ while 1:
         #elif(powerAsksNumber - 2 > powerBidsNumber):
         #    txtJson = chbtc.sell_order(str(AsksPriceLower), str(("%.3f" % (curMoney_BTC))))
         else:
-        		sell_price = 0.0
-        		sell_price = powerAsksPrice - timer_cancel_SellOrder
-        		if sell_price - AsksPriceLower > 4:
-        			 sell_price = AsksPriceLower
+            sell_price = 0.0
+            sell_price = powerAsksPrice - timer_cancel_SellOrder
+            if sell_price - AsksPriceLower > 4:
+                sell_price = AsksPriceLower
             txtJson = chbtc.sell_order(str(sell_price), str(("%.3f" % (curMoney_BTC))))
         
         if txtJson != "error" :
