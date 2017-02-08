@@ -430,8 +430,7 @@ while 1:
         BidsPriceHigh = float(txtJson["bids"][0][0])
         BidsPriceLower = float(txtJson["bids"][4][0])
 
-    if powerBidsNumber - 4 > powerAsksNumber and curMoney_BTC == 0 and powerBidsPrice - BidsPriceLower < 6:
-    #if powerBidsNumber > powerAsksNumber and curMoney_BTC == 0:
+    if powerBidsNumber - 4 > powerAsksNumber and curMoney_BTC == 0 and powerBidsPrice - BidsPriceLower < 6 and AsksPriceLower - BidsPriceHigh < 3:
         if (curMoney_CNY / powerBidsPrice) >= 0.001  :
             txtJson = chbtc.buy_order(str(powerBidsPrice), str(((curMoney_CNY / powerBidsPrice))) )
             if txtJson != "error" :
@@ -450,7 +449,11 @@ while 1:
         #elif(powerAsksNumber - 2 > powerBidsNumber):
         #    txtJson = chbtc.sell_order(str(AsksPriceLower), str(("%.3f" % (curMoney_BTC))))
         else:
-            txtJson = chbtc.sell_order(str(powerAsksPrice - timer_cancel_SellOrder), str(("%.3f" % (curMoney_BTC))))
+        		sell_price = 0.0
+        		sell_price = powerAsksPrice - timer_cancel_SellOrder
+        		if sell_price - AsksPriceLower > 4:
+        			 sell_price = AsksPriceLower
+            txtJson = chbtc.sell_order(str(sell_price), str(("%.3f" % (curMoney_BTC))))
         
         if txtJson != "error" :
             logger.info("sell_order: %s : %s : %s", str(txtJson["id"]), str(powerAsksPrice), str(("%.3f" % (curMoney_BTC))))
