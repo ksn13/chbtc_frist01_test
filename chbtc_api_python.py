@@ -330,6 +330,9 @@ if __name__ == '__main__':
     totalAssets = 0
     timestamp = 0
 
+    curMoney_CNY = 500.0#txtJson["result"]["balance"]["CNY"]["amount"]
+    curMoney_ETH = 0.0#txtJson["result"]["balance"]["ETH"]["amount"]
+
 #    done = False
 #while not done:
 while 1:
@@ -338,8 +341,7 @@ while 1:
     if txtJson == "error" :
         continue
     
-    curMoney_CNY = txtJson["result"]["balance"]["CNY"]["amount"]
-    curMoney_ETH = txtJson["result"]["balance"]["ETH"]["amount"]
+
     totalAssets = txtJson["result"]["totalAssets"]
     #if totalAssets > max_value :
     #    max_value = totalAssets
@@ -494,6 +496,8 @@ while 1:
         if txtJson != "error" :
             sell_order_timer = txtJson["trade_date"]
             sell_order_state = txtJson["status"]
+            curMoney_ETH -= txtJson["trade_amount"]
+            
             print ("sell_order_id :%d, %d, %d", sell_order_id, sell_order_timer, sell_order_state)
             if (sell_order_state == 0 or sell_order_state == 3) and (timestamp - sell_order_timer/1000) > int(cancalTime_SellOrder):
                 txtJson = chbtc.cancel_order(str(sell_order_id))
@@ -514,6 +518,7 @@ while 1:
             buy_order_timer = txtJson["trade_date"]
             buy_order_state = txtJson["status"]
             buy_order_price = txtJson["trade_price"]
+            curMoney_ETH += txtJson["trade_amount"]
             
             print ("buy_order_id :%d, %d, %d", buy_order_id, buy_order_timer, buy_order_state)
             if (buy_order_state == 0 or buy_order_state == 3) and (timestamp - buy_order_timer/1000) > int(cancalTime_BuyOrder):
