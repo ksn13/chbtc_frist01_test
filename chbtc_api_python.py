@@ -194,7 +194,7 @@ class chbtc_api:
 
     def sell_order(self, price, amount):
         try:
-            params = "method=order&accesskey="+self.mykey+"&price=" + price + "&amount=" + amount + "&tradeType=0&currency=btc_cny"
+            params = "method=order&accesskey="+self.mykey+"&price=" + price + "&amount=" + amount + "&tradeType=0&currency=eth_cny"
             path = 'order'
 
             obj = self.__api_call(path, params)
@@ -208,7 +208,7 @@ class chbtc_api:
         
     def buy_order(self, price, amount):
         try:
-            params = "method=order&accesskey="+self.mykey+"&price=" + price + "&amount=" + amount + "&tradeType=1&currency=btc_cny"
+            params = "method=order&accesskey="+self.mykey+"&price=" + price + "&amount=" + amount + "&tradeType=1&currency=eth_cny"
             path = 'order'
 
             obj = self.__api_call(path, params)
@@ -222,7 +222,7 @@ class chbtc_api:
 
     def cancel_order(self, orderId):
         try:
-            params = "method=cancelOrder&accesskey="+self.mykey+"&id=" + orderId + "&currency=btc_cny"
+            params = "method=cancelOrder&accesskey="+self.mykey+"&id=" + orderId + "&currency=eth_cny"
             path = 'cancelOrder'
             obj = self.__api_call(path, params)
             
@@ -237,7 +237,7 @@ class chbtc_api:
 
     def query_order(self, orderId):
         try:
-            params = "method=getOrder&accesskey="+self.mykey+"&id=" + orderId + "&currency=btc_cny"
+            params = "method=getOrder&accesskey="+self.mykey+"&id=" + orderId + "&currency=eth_cny"
             path = 'getOrder'
             obj = self.__api_call(path, params)
             return obj
@@ -248,7 +248,7 @@ class chbtc_api:
 
     def query_market(self):
         try:
-            url = "http://api.chbtc.com/data/v1/ticker?currency=btc_cny"
+            url = "http://api.chbtc.com/data/v1/ticker?currency=eth_cny"
             request = urllib2.Request(url)
             response = urllib2.urlopen(request, timeout=3)
             obj = json.loads(response.read())
@@ -259,7 +259,7 @@ class chbtc_api:
 
     def query_depth(self):
         try:
-            url = "http://api.chbtc.com/data/v1/depth?currency=btc_cny&size=5&merge=1"
+            url = "http://api.chbtc.com/data/v1/depth?currency=eth_cny&size=5&merge="
             request = urllib2.Request(url)
             response = urllib2.urlopen(request, timeout=3)
             obj = json.loads(response.read())            
@@ -313,12 +313,15 @@ if __name__ == '__main__':
 
     orderPrice = 0.0
     curMoney_CNY = 0.0
-    curMoney_BTC = 0.0
+    curMoney_ETH = 0.0
+    timer_cancel_SellOrder = 0.0
+    timer_cancel_BuyOrder = 0.0
     
     totalAssets = 0.0
 
     sell_order_id = 0
     buy_order_id = 0
+    buy_order_price = 0.0
     sell_order_state = 0
     sell_order_timer = 0
     buy_order_state = 0
@@ -330,22 +333,13 @@ if __name__ == '__main__':
 #    done = False
 #while not done:
 while 1:
-    '''
-    if msvcrt.kbhit():
-        print "you pressed",msvcrt.getch(),"so now i will quit"
-        cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
-        cf.write(open("info.conf", "w"))
-        break 
-        #done = True
-    '''
     
     txtJson = chbtc.query_account()
-
     if txtJson == "error" :
         continue
     
     curMoney_CNY = txtJson["result"]["balance"]["CNY"]["amount"]
-    curMoney_BTC = txtJson["result"]["balance"]["BTC"]["amount"]
+    curMoney_ETH = txtJson["result"]["balance"]["ETH"]["amount"]
     totalAssets = txtJson["result"]["totalAssets"]
     #if totalAssets > max_value :
     #    max_value = totalAssets
@@ -356,10 +350,10 @@ while 1:
     elif float(totalAssets) < float(startworkvalue) * float(lossPer) : 
         chbtc.cancel_order(str(buy_order_id))
         chbtc.cancel_order(str(sell_order_id))
-        chbtc.sell_order(str(1000), str(("%.3f" % (curMoney_BTC))))
+        chbtc.sell_order(str(10), str(("%.3f" % (curMoney_ETH))))
         logger.info("I lost money : 5% : %s : %s", str(startworkvalue), str(totalAssets))
         break
-    elif float(totalAssets) > float(startworkvalue) + float(everydaytask) and buy_order_id == 0 and sell_order_id == 0 and curMoney_BTC == 0:
+    elif float(totalAssets) > float(startworkvalue) + float(everydaytask) and buy_order_id == 0 and sell_order_id == 0 and curMoney_ETH == 0:
         cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
         cf.set("xiongding@gmail.com", "stopworktime", (int)(time.time()*1000))
         stopworktime = (int)(time.time()*1000)
@@ -377,18 +371,15 @@ while 1:
     elif (int)(time.time()*1000) - (int)(startworktime) > (3600 * 1000 * 24) :
         logger.info("I do not my daily work : %s : %s : %s", str(startworkvalue),  str(totalAssets), str(startworktime))
         startworkvalue = totalAssets
-        
-
+        startworktime = (int)(time.time()*1000)
+        cf.set("xiongding@gmail.com", "stopworkvalue", (totalAssets))
+        cf.write(open("info.conf", "w"))
 
     resCHBTC = chbtc.query_market()
     txtJson = chbtc.query_depth()
-
+    
     if txtJson == "error" or resCHBTC == "error" :
         continue
-
-    #print ("asks: %s", txtJson["asks"])
-    #print ("bids: %s", txtJson["bids"])
-    #print ("timestamp: %s", txtJson["timestamp"])
     
     timestamp = txtJson["timestamp"]
 
@@ -398,12 +389,14 @@ while 1:
     powerAsksNumber = 0.0
 
     AsksPriceLower = 0.0
-    timer_cancel_SellOrder = 0.0
-    
-    AsksPriceLower = 0.0
     BidsPriceHigh = 0.0
     BidsPriceLower = 0.0
 
+    BuyMaxNum = 0
+    SellMaxNum = 0
+    BidsPriceMaxNum = 0
+    AsksPriceMaxNum = 0
+    
     for i in range(0,len(txtJson["asks"])):
 
         if i == 0 :
@@ -423,52 +416,86 @@ while 1:
             powerBidsPrice = powerBidsPrice + float(txtJson["bids"][i][0]) * 0.05
 
         powerAsksNumber = powerAsksNumber + float(txtJson["asks"][i][1])
-        powerBidsNumber = powerBidsNumber + float(txtJson["bids"][i][1])
-
+        if float(txtJson["bids"][i][0]) > buy_order_price - 0.5 :
+            powerBidsNumber = powerBidsNumber + float(txtJson["bids"][i][1])
+        
         AsksPriceLower = float(txtJson["asks"][4][0])
         BidsPriceHigh = float(txtJson["bids"][0][0])
         BidsPriceLower = float(txtJson["bids"][4][0])
 
-    if powerBidsNumber - 4 > powerAsksNumber and curMoney_BTC == 0 and powerBidsPrice - BidsPriceLower < 6 and AsksPriceLower - BidsPriceHigh < 3:
-        if (curMoney_CNY / powerBidsPrice) >= 0.001  :
-            txtJson = chbtc.buy_order(str(powerBidsPrice), str(((curMoney_CNY / powerBidsPrice))) )
+        if float(txtJson["bids"][i][1]) > BuyMaxNum:
+            BuyMaxNum = float(txtJson["bids"][i][1])
+            BidsPriceMaxNum = float(txtJson["bids"][i][0])
+        if float(txtJson["bids"][i][1]) > SellMaxNum:
+            SellMaxNum = float(txtJson["asks"][i][1])
+            AsksPriceMaxNum = float(txtJson["asks"][i][0])
+
+    if buy_order_id == 0 and powerBidsNumber - 200 > powerAsksNumber  and powerBidsPrice - BidsPriceLower < 0.8:# and AsksPriceLower - BidsPriceHigh < 0.4:
+        if (curMoney_CNY / powerBidsPrice) > 0.502  :
+            buyPrice = powerBidsPrice + timer_cancel_BuyOrder
+            if buyPrice > BidsPriceHigh :
+                buyPrice = powerBidsPrice
+            if buyPrice - 0.05 > BidsPriceMaxNum and BuyMaxNum > 200 :
+                buyPrice = BidsPriceMaxNum + 0.01
+                
+            txtJson = chbtc.buy_order(str(buyPrice), str(((curMoney_CNY / (powerBidsPrice + timer_cancel_BuyOrder) ))) )
             if txtJson != "error" :
-                logger.info("buy_order: %s : %s : %s", str(txtJson["id"]), str(powerBidsPrice), str(((curMoney_CNY / powerBidsPrice))))
+                logger.info("buy_order: %s : %s : %s : %s", str(txtJson["id"]), str(powerBidsPrice),str(timer_cancel_BuyOrder), str(((curMoney_CNY / powerBidsPrice))))
                 buy_order_id = txtJson["id"]
+                #buy_order_price = buyPrice
                 #orderPrice = powerBidsPrice
             else :
                 logger.debug("buy_order: %s : %f : %f : %s", txtJson, curMoney_CNY, powerBidsPrice, str(("%.4f" % (curMoney_CNY / powerBidsPrice) )) )
-                
+    elif powerBidsNumber - 200 < powerAsksNumber :
+        timer_cancel_BuyOrder = 0.0
+		    
+    print("buy_order:                               ", powerBidsNumber, powerAsksNumber, curMoney_ETH, powerBidsPrice, totalAssets )       
 
-    if curMoney_BTC != 0 and powerAsksNumber > powerBidsNumber:
-        if(powerAsksNumber - 10 > powerBidsNumber):
-            txtJson = chbtc.sell_order(str(AsksPriceLower - 0.01), str(("%.3f" % (curMoney_BTC)))) #powerBidsNumber is error value
-        elif(powerAsksNumber - 4 > powerBidsNumber):
-            txtJson = chbtc.sell_order(str(AsksPriceLower), str(("%.3f" % (curMoney_BTC))))
+    if sell_order_id == 0 and curMoney_ETH >= 0.001 and ( powerAsksNumber > powerBidsNumber or buy_order_price > powerAsksPrice):
+        
+        if(powerAsksNumber - 400 > powerBidsNumber):
+            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 ) ) #powerBidsNumber is error value
+        elif(powerAsksNumber - 200 > powerBidsNumber):
+            txtJson = chbtc.sell_order(str((AsksPriceLower)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 )  )
         #elif(powerAsksNumber - 2 > powerBidsNumber):
         #    txtJson = chbtc.sell_order(str(AsksPriceLower), str(("%.3f" % (curMoney_BTC))))
+        elif buy_order_price - 0.5 > powerAsksPrice :
+            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 ) )
         else:
             sell_price = 0.0
             sell_price = powerAsksPrice - timer_cancel_SellOrder
-            if sell_price - AsksPriceLower > 4:
+            if sell_price < AsksPriceLower:
                 sell_price = AsksPriceLower
-            if timer_cancel_SellOrder > 0.3 and sell_price > AsksPriceLower :
-                sell_price = AsksPriceLower - 0.01
-            txtJson = chbtc.sell_order(str(sell_price), str(("%.3f" % (curMoney_BTC))))
+            if sell_price - AsksPriceLower > 0.3:
+                sell_price = AsksPriceLower
+            if timer_cancel_SellOrder > 0.3 :
+                sell_price = AsksPriceLower - 0.05
+            txtJson = chbtc.sell_order(str((sell_price)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000) )
         
+
+        '''
+        sell_price = 0.0
+        sell_price = AsksPriceLower - timer_cancel_SellOrder
+        if sell_price < AsksPriceLower - 0.15:
+            sell_price = AsksPriceLower - 0.15
+        txtJson = chbtc.sell_order(str((sell_price)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000) )
+        '''
+
         if txtJson != "error" :
-            logger.info("sell_order: %s : %s : %s", str(txtJson["id"]), str(powerAsksPrice), str(("%.3f" % (curMoney_BTC))))
+            logger.info("sell_order: %s : %s : %s", str(txtJson["id"]), str(powerAsksPrice), str( ((float)((int)(curMoney_ETH * 1000))) / 1000) )
             sell_order_id = txtJson["id"]
         else :
             logger.debug('sell_order: %s', txtJson)
-
+    elif curMoney_ETH >= 0.001 and ( powerAsksNumber < powerBidsNumber or buy_order_price < powerAsksPrice) :
+        timer_cancel_SellOrder = 0.0
+        
     if sell_order_id != 0 :
         txtJson = chbtc.query_order(str(sell_order_id))
         if txtJson != "error" :
             sell_order_timer = txtJson["trade_date"]
             sell_order_state = txtJson["status"]
             print ("sell_order_id :%d, %d, %d", sell_order_id, sell_order_timer, sell_order_state)
-            if sell_order_state == 0 and (timestamp - sell_order_timer/1000) > int(cancalTime_SellOrder):
+            if (sell_order_state == 0 or sell_order_state == 3) and (timestamp - sell_order_timer/1000) > int(cancalTime_SellOrder):
                 txtJson = chbtc.cancel_order(str(sell_order_id))
                 if txtJson != "error" :
                     logger.info("sell_order_Cancel: %s : %s : %s", str(sell_order_id), str(timestamp), str(sell_order_timer/1000))
@@ -476,27 +503,32 @@ while 1:
                     timer_cancel_SellOrder = timer_cancel_SellOrder + 0.01
             if sell_order_state == 2 :
                 sell_order_id = 0
-                timer_cancel_SellOrder = 0
+                buy_order_price = 0
                 logger.info("sell_order_Done: %s : %s : %s", str(txtJson["price"]), str(txtJson["trade_price"]), str(txtJson["trade_amount"]))
 
     if buy_order_id != 0 :
         txtJson = chbtc.query_order(str(buy_order_id))
         
         if txtJson != "error" :
+
             buy_order_timer = txtJson["trade_date"]
             buy_order_state = txtJson["status"]
+            buy_order_price = txtJson["trade_price"]
+            
             print ("buy_order_id :%d, %d, %d", buy_order_id, buy_order_timer, buy_order_state)
-            if buy_order_state == 0 and (timestamp - buy_order_timer/1000) > int(cancalTime_BuyOrder):
+            if (buy_order_state == 0 or buy_order_state == 3) and (timestamp - buy_order_timer/1000) > int(cancalTime_BuyOrder):
                 txtJson = chbtc.cancel_order(str(buy_order_id))
                 logger.info("buy_order_Cancel: %s : %s : %s", str(buy_order_id), str(timestamp), str(buy_order_timer/1000))
                 if txtJson != "error" :
                     buy_order_id = 0
+                    if buy_order_state == 2 :
+                        buy_order_price = 0
+                    timer_cancel_BuyOrder = timer_cancel_BuyOrder + 0.01
             if buy_order_state == 2 :
                 buy_order_id = 0
                 logger.info('buy_order_Done: %s : %s : %s', str(txtJson["price"]), str(txtJson["trade_price"]), str(txtJson["trade_amount"]))
-
     
-    ###time.sleep(0.1)
+    #time.sleep(0.5)
 
 logger.info ("end app")
 
