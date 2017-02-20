@@ -341,7 +341,16 @@ while 1:
     if txtJson == "error" :
         continue
     
+    curMoney_ETH = txtJson["result"]["balance"]["ETH"]["amount"]
 
+    if curMoney_ETH >= 0.001 and ( (((float)((int)(curMoney_ETH * 1000))) / 1000 ) * 0.5 ) < 5 :
+        curMoney_ETH = ( (float)( (int)(curMoney_ETH * 1000) ) ) / 1000
+    elif curMoney_ETH >= 0.001 :
+        curMoney_ETH = ( ( (float)( (int)(curMoney_ETH * 1000) ) ) / 1000 ) * 0.5
+    else :
+        curMoney_ETH = 0.0
+        
+    
     totalAssets = txtJson["result"]["totalAssets"]
     #if totalAssets > max_value :
     #    max_value = totalAssets
@@ -456,13 +465,13 @@ while 1:
     if sell_order_id == 0 and curMoney_ETH >= 0.001 and ( powerAsksNumber > powerBidsNumber or buy_order_price > powerAsksPrice):
         
         if(powerAsksNumber - 400 > powerBidsNumber):
-            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 ) ) #powerBidsNumber is error value
+            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01) ), str(curMoney_ETH) ) #powerBidsNumber is error value
         elif(powerAsksNumber - 200 > powerBidsNumber):
-            txtJson = chbtc.sell_order(str((AsksPriceLower)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 )  )
+            txtJson = chbtc.sell_order(str((AsksPriceLower) ), str( curMoney_ETH )  )
         #elif(powerAsksNumber - 2 > powerBidsNumber):
         #    txtJson = chbtc.sell_order(str(AsksPriceLower), str(("%.3f" % (curMoney_BTC))))
         elif buy_order_price - 0.5 > powerAsksPrice :
-            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)), str( ((float)((int)(curMoney_ETH * 1000))) / 1000 ) )
+            txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)), str( curMoney_ETH ) )
         else:
             sell_price = 0.0
             sell_price = powerAsksPrice - timer_cancel_SellOrder
@@ -472,7 +481,7 @@ while 1:
                 sell_price = AsksPriceLower
             if timer_cancel_SellOrder > 0.3 :
                 sell_price = AsksPriceLower - 0.05
-            txtJson = chbtc.sell_order(str((sell_price)*1.0005), str( ((float)((int)(curMoney_ETH * 1000))) / 1000) )
+            txtJson = chbtc.sell_order(str((sell_price) ), str( curMoney_ETH * 1000 ) )
         
 
         '''
@@ -484,7 +493,7 @@ while 1:
         '''
 
         if txtJson != "error" :
-            logger.info("sell_order: %s : %s : %s", str(txtJson["id"]), str(powerAsksPrice), str( ((float)((int)(curMoney_ETH * 1000))) / 1000) )
+            logger.info("sell_order: %s : %s : %s", str(txtJson["id"]), str(powerAsksPrice), str( curMoney_ETH ) )
             sell_order_id = txtJson["id"]
         else :
             logger.debug('sell_order: %s', txtJson)
