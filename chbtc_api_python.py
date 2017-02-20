@@ -449,9 +449,9 @@ while 1:
             if buyPrice - 0.05 > BidsPriceMaxNum and BuyMaxNum > 200 :
                 buyPrice = BidsPriceMaxNum + 0.01
                 
-            txtJson = chbtc.buy_order(str(buyPrice), str(((curMoney_CNY / (powerBidsPrice + timer_cancel_BuyOrder) ))) )
+            txtJson = chbtc.buy_order(str(buyPrice), str(((curMoney_CNY / ( buyPrice ) ))) )
             if txtJson != "error" :
-                logger.info("buy_order: %s : %s : %s : %s", str(txtJson["id"]), str(powerBidsPrice),str(timer_cancel_BuyOrder), str(((curMoney_CNY / powerBidsPrice))))
+                logger.info("buy_order: %s : %s : %s : %s", str(txtJson["id"]), str(powerBidsPrice),str(timer_cancel_BuyOrder), str(((curMoney_CNY / buyPrice))))
                 buy_order_id = txtJson["id"]
                 #buy_order_price = buyPrice
                 #orderPrice = powerBidsPrice
