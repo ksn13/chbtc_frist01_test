@@ -405,8 +405,10 @@ while 1:
 
     BuyMaxNum = 0
     SellMaxNum = 0
+    SellSecNum = 0
     BidsPriceMaxNum = 0
     AsksPriceMaxNum = 0
+    AsksPriceSecNum = 0
     
     for i in range(0,len(txtJson["asks"])):
 
@@ -438,14 +440,17 @@ while 1:
             BuyMaxNum = float(txtJson["bids"][i][1])
             BidsPriceMaxNum = float(txtJson["bids"][i][0])
         if float(txtJson["bids"][i][1]) > SellMaxNum:
+            SellSecNum = SellMaxNum
             SellMaxNum = float(txtJson["asks"][i][1])
+            AsksPriceSecNum = AsksPriceMaxNum
             AsksPriceMaxNum = float(txtJson["asks"][i][0])
 
-    if buy_order_id == 0 and powerBidsNumber - 200 > powerAsksNumber  and powerBidsPrice - BidsPriceLower < 0.8:# and AsksPriceLower - BidsPriceHigh < 0.4:
+    if buy_order_id == 0 and powerBidsNumber - 200 > powerAsksNumber  and BidsPriceHigh - BidsPriceLower < 0.16 :# and AsksPriceLower - BidsPriceHigh < 0.4:
         if (curMoney_CNY / powerBidsPrice) > 0.502  :
             buyPrice = powerBidsPrice + timer_cancel_BuyOrder
             if buyPrice > BidsPriceHigh :
                 buyPrice = powerBidsPrice
+                timer_cancel_BuyOrder = 0.0
             if buyPrice - 0.05 > BidsPriceMaxNum and BuyMaxNum > 200 :
                 buyPrice = BidsPriceMaxNum + 0.01
                 
@@ -463,7 +468,7 @@ while 1:
     print("buy_order:                               ", powerBidsNumber, powerAsksNumber, curMoney_ETH, powerBidsPrice, totalAssets )       
 
     if sell_order_id == 0 and curMoney_ETH >= 0.001 and ( powerAsksNumber > powerBidsNumber or buy_order_price > powerAsksPrice):
-        
+        '''
         if(powerAsksNumber - 400 > powerBidsNumber):
             txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01) ), str(curMoney_ETH) ) #powerBidsNumber is error value
         elif(powerAsksNumber - 200 > powerBidsNumber):
@@ -473,16 +478,28 @@ while 1:
         elif buy_order_price - 0.5 > powerAsksPrice :
             txtJson = chbtc.sell_order(str((AsksPriceLower - 0.01)), str( curMoney_ETH ) )
         else:
-            sell_price = 0.0
-            sell_price = powerAsksPrice - timer_cancel_SellOrder
-            if sell_price < AsksPriceLower:
-                sell_price = AsksPriceLower
-            if sell_price - AsksPriceLower > 0.3:
-                sell_price = AsksPriceLower
-            if timer_cancel_SellOrder > 0.3 :
-                sell_price = AsksPriceLower - 0.05
-            txtJson = chbtc.sell_order(str((sell_price) ), str( curMoney_ETH * 1000 ) )
-        
+        '''
+        flag = 1
+        sell_price = 0.0
+        sell_price = powerAsksPrice - timer_cancel_SellOrder
+        if powerAsksNumber - 400 > powerBidsNumber :
+            flag = 0
+            
+        if AsksPriceMaxNum == AsksPriceLower :
+            sell_price = AsksPriceLower
+        if sell_price < AsksPriceLower:
+            sell_price = AsksPriceLower
+            timer_cancel_SellOrder = 0.0
+            #if sell_price - AsksPriceLower > 0.3:
+            #    sell_price = AsksPriceLower
+            #if timer_cancel_SellOrder > 0.3 :
+            #    sell_price = AsksPriceLower - 0.05
+
+        if buy_order_price < powerAsksPrice and flag == 1:
+            txtJson = chbtc.sell_order(str((sell_price) * 1.0005 ), str( curMoney_ETH ) )
+        else :
+            txtJson = chbtc.sell_order(str((sell_price) ), str( curMoney_ETH ) )
+        flag = 0
 
         '''
         sell_price = 0.0
@@ -535,9 +552,9 @@ while 1:
                 logger.info("buy_order_Cancel: %s : %s : %s", str(buy_order_id), str(timestamp), str(buy_order_timer/1000))
                 if txtJson != "error" :
                     buy_order_id = 0
-                    if buy_order_state == 2 :
+                    if buy_order_state == 0 :
                         buy_order_price = 0
-                    timer_cancel_BuyOrder = timer_cancel_BuyOrder + 0.01
+                        timer_cancel_BuyOrder = timer_cancel_BuyOrder + 0.01
             if buy_order_state == 2 :
                 buy_order_id = 0
                 logger.info('buy_order_Done: %s : %s : %s', str(txtJson["price"]), str(txtJson["trade_price"]), str(txtJson["trade_amount"]))
