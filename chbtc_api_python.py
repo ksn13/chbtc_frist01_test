@@ -343,9 +343,9 @@ while 1:
     
     curMoney_ETH = txtJson["result"]["balance"]["ETH"]["amount"]
 
-    if curMoney_ETH >= 0.001 and ( (((float)((int)(curMoney_ETH * 1000))) / 1000 ) * 0.5 ) < 5 :
-        curMoney_ETH = ( (float)( (int)(curMoney_ETH * 1000) ) ) / 1000
-    elif curMoney_ETH >= 0.001 :
+    #if curMoney_ETH >= 0.001 and ( (((float)((int)(curMoney_ETH * 1000))) / 1000 ) * 0.5 ) < 5 :
+    #    curMoney_ETH = ( (float)( (int)(curMoney_ETH * 1000) ) ) / 1000
+    if curMoney_ETH >= 0.001 :
         curMoney_ETH = ( ( (float)( (int)(curMoney_ETH * 1000) ) ) / 1000 ) * 0.5
     else :
         curMoney_ETH = 0.0
@@ -445,7 +445,7 @@ while 1:
             AsksPriceSecNum = AsksPriceMaxNum
             AsksPriceMaxNum = float(txtJson["asks"][i][0])
 
-    if buy_order_id == 0 and powerBidsNumber - 200 > powerAsksNumber  and BidsPriceHigh - BidsPriceLower < 0.16 :# and AsksPriceLower - BidsPriceHigh < 0.4:
+    if buy_order_id == 0 and powerBidsNumber - 200 > powerAsksNumber  and BidsPriceHigh - BidsPriceLower < 0.13 :# and AsksPriceLower - BidsPriceHigh < 0.4:
         if (curMoney_CNY / powerBidsPrice) > 0.502  :
             buyPrice = powerBidsPrice + timer_cancel_BuyOrder
             if buyPrice > BidsPriceHigh :
@@ -495,10 +495,10 @@ while 1:
             #if timer_cancel_SellOrder > 0.3 :
             #    sell_price = AsksPriceLower - 0.05
 
-        if buy_order_price < powerAsksPrice and flag == 1:
+        if buy_order_price < powerAsksPrice + 0.06 and flag == 1:
             txtJson = chbtc.sell_order(str((sell_price) * 1.0005 ), str( curMoney_ETH ) )
         else :
-            txtJson = chbtc.sell_order(str((sell_price) ), str( curMoney_ETH ) )
+            txtJson = chbtc.sell_order(str((sell_price) * 1.0005 ), str( curMoney_ETH ) )
         flag = 0
 
         '''
@@ -530,7 +530,7 @@ while 1:
                 if txtJson != "error" :
                     logger.info("sell_order_Cancel: %s : %s : %s", str(sell_order_id), str(timestamp), str(sell_order_timer/1000))
                     sell_order_id = 0
-                    timer_cancel_SellOrder = timer_cancel_SellOrder + 0.01
+                    timer_cancel_SellOrder = timer_cancel_SellOrder + 0.0034
             if sell_order_state == 2 :
                 sell_order_id = 0
                 buy_order_price = 0
@@ -554,7 +554,7 @@ while 1:
                     buy_order_id = 0
                     if buy_order_state == 0 :
                         buy_order_price = 0
-                        timer_cancel_BuyOrder = timer_cancel_BuyOrder + 0.01
+                        timer_cancel_BuyOrder = timer_cancel_BuyOrder + 0.0034
             if buy_order_state == 2 :
                 buy_order_id = 0
                 logger.info('buy_order_Done: %s : %s : %s', str(txtJson["price"]), str(txtJson["trade_price"]), str(txtJson["trade_amount"]))
